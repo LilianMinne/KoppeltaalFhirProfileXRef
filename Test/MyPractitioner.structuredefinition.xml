@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<StructureDefinition xmlns="http://hl7.org/fhir">
+  <meta>
+    <lastUpdated value="2017-08-21T13:40:14.377+02:00" />
+  </meta>
+  <url value="http://example.org.fhir/StructureDefinition/MyPractitioner" />
+  <name value="MyPractitioner" />
+  <status value="draft" />
+  <date value="2017-08-21T13:39:26.202+02:00" />
+  <fhirVersion value="3.0.1" />
+  <kind value="resource" />
+  <abstract value="false" />
+  <type value="Practitioner" />
+  <baseDefinition value="http://hl7.org/fhir/StructureDefinition/Practitioner" />
+  <derivation value="constraint" />
+</StructureDefinition>
