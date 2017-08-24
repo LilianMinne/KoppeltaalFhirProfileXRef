@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Office.Interop.Excel;
 
 namespace FhirProfileXRef
 {
@@ -31,6 +32,11 @@ namespace FhirProfileXRef
 
         static Dictionary<string, string> _mappings = new Dictionary<string, string>();
 
+        static Application xlApp = new Application();
+        static Workbook wb;
+        static Worksheet ws;
+        static int count = 2;
+
         static void Main(string[] args)
         {
             ShowIntro();
@@ -40,15 +46,47 @@ namespace FhirProfileXRef
                 Console.WriteLine($"Location: '{_targetPath}'");
                 InitCoreProfiles();
                 InitUserProfiles();
+                CreateExcelSheet();
                 ValidateXRef();
+                SaveExcelSheet();
             }
             else
             {
                 ShowHelp();
             }
 
-
+//#if DEBUG
             Console.ReadLine();
+//#endif
+        }
+
+        static void CreateExcelSheet()
+        {
+            wb = xlApp.Workbooks.Add(XlWBATemplate.xlWBATWorksheet);
+            ws = (Worksheet)wb.Worksheets[1];
+
+            ws.Columns[1].ColumnWidth = 20;
+            ws.Columns[2].ColumnWidth = 30;
+            ws.Columns[3].ColumnWidth = 55;
+            ws.Columns[4].ColumnWidth = 55;
+
+            ws.Rows[1].Font.Bold = true;
+
+            ws.Cells[1, 1] = "Resource name";
+            ws.Cells[1, 2] = "Element path";
+            ws.Cells[1, 3] = "Reference found";
+            ws.Cells[1, 4] = "Reference suggestion";
+        }
+
+        static void SaveExcelSheet()
+        {
+            if (System.IO.File.Exists(@"C:\Git\KoppeltaalFhirProfileXRef\FhirProfileXRef.xlsx"))
+            {
+                System.IO.File.Delete(@"C:\Git\KoppeltaalFhirProfileXRef\FhirProfileXRef.xlsx");
+            }
+
+            wb.SaveAs(@"C:\Git\KoppeltaalFhirProfileXRef\FhirProfileXRef.xlsx");
+            xlApp.Workbooks.Close();
         }
 
         static bool InitArguments(string[] args)
@@ -93,7 +131,7 @@ namespace FhirProfileXRef
 
             var src = _coreSource = ZipSource.CreateValidationSource();
             _cachedCoreSource = new CachedResolver(src);
-            var profiles = _coreProfiles = src.ListResourceUris(Hl7.Fhir.Model.ResourceType.StructureDefinition).ToList();
+            var profiles = _coreProfiles = src.ListResourceUris(ResourceType.StructureDefinition).ToList();
 
             Console.WriteLine($"Found {profiles.Count} core definitions.");
         }
@@ -140,16 +178,17 @@ namespace FhirProfileXRef
         {
             Console.WriteLine($"Validate '{profileUrl}' ...");
             var sd = _cachedDirSource.FindStructureDefinition(profileUrl, false);
+
             if (EnsureSnapshot(sd))
             {
                 foreach (var elem in sd.Snapshot.Element)
                 {
-                    ValidateElement(elem);
+                    ValidateElement(elem, sd);
                 }
             }
         }
 
-        static void ValidateElement(ElementDefinition elem)
+        static void ValidateElement(ElementDefinition elem, StructureDefinition sd)
         {
             foreach (var type in elem.Type)
             {
@@ -160,6 +199,11 @@ namespace FhirProfileXRef
                     if (_mappings.TryGetValue(tgt, out string profile))
                     {
                         Console.WriteLine($"Warning! '{elem.Path}' : '{tgt}' => '{profile}'");
+                        ws.Cells[count, 1] = sd.Name;
+                        ws.Cells[count, 2] = elem.Path;
+                        ws.Cells[count, 3] = tgt;
+                        ws.Cells[count, 4] = profile;
+                        count++;
                     }
                 }
             }

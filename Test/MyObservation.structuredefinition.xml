@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <StructureDefinition xmlns="http://hl7.org/fhir">
   <meta>
-    <lastUpdated value="2017-08-21T13:40:18.99+02:00" />
+    <lastUpdated value="2017-08-21T15:01:53.744+02:00" />
   </meta>
   <url value="http://example.org/fhir/StructureDefinition/MyObservation" />
   <name value="MyObservation" />
